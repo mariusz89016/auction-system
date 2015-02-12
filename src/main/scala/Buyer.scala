@@ -13,7 +13,6 @@ class Buyer(private val auctions: List[ActorRef]) extends Actor with ActorLoggin
     scheduledTask = context.system.scheduler.schedule(1.seconds, 1.seconds) {
       val bid = Random.nextInt(300)
       val choice = Random.nextInt(auctions.size)
-//      log.debug("poszedl bid: " + bid + " do: " + auctions(choice))
       auctions(choice) ! Bid(bid)
     }
   }
@@ -24,7 +23,7 @@ class Buyer(private val auctions: List[ActorRef]) extends Actor with ActorLoggin
 
   def receive: Receive = {
     case ItemBought(description: String) =>
-      log.debug("[" + self.path.name + "] I bought: " + description)
+      log.debug(s"[${self.path.name}] I bought: $description")
       context.stop(self)
   }
 }

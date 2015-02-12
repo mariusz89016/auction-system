@@ -24,11 +24,10 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
         self,
         BidTimerExpired
       )
-//      log.debug("[" + self.path.name + "] got bid: " + x)
       printActualOffer(self, sender(), 0, x)
       goto(Activated) using Offer(sender(), x)
     case Event(BidTimerExpired, _) =>
-      log.debug("[" + self.path.name + "] bid time exceeded!")
+      log.debug(s"[${self.path.name}] bid time exceeded!")
       deleteTimer = context.system.scheduler.scheduleOnce(
         5.seconds,
         self,
@@ -39,11 +38,11 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
 
   when(Ignored) {
     case Event(DeleteTimerExpired, _) =>
-      log.debug("[" + self.path.name + "] killing...")
+      log.debug(s"[${self.path.name}] killing...")
       context.stop(self)
       stay()
     case Event(Relist, _) =>
-      log.debug("[" + self.path.name + "] relisted")
+      log.debug(s"[${self.path.name}] relisted")
       goto(Created)
   }
 
@@ -73,7 +72,7 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
 
   when(Sold) {
     case Event(DeleteTimerExpired, _) =>
-      log.debug("[" + self.path.name + "] killing...")
+      log.debug(s"[${self.path.name}] killing...")
       context.parent ! Stop
       context.stop(self)
       stay()
@@ -84,10 +83,10 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
 
   private def printActualOffer(me: ActorRef, sender: ActorRef, oldBid: Int, newBid: Int): Unit = {
     if(oldBid>newBid) {
-//      log.debug("-----------------\n[%s] too LOW - oldBid: %d newBid: %d\n from %s\".format(me.path.name, oldBid, newBid, sender))
+//      log.debug("-----------------\n[${me.path.name}] too LOW - oldBid: $oldBid newBid: $newBid\n from $sender")
     }
     else {
-      log.debug("-----------------\n[%s] ACCEPT NEW BID - oldBid: %d newBid: %d\n from %s".format(me.path.name, oldBid, newBid, sender))
+      log.debug(s"-----------------\n[${me.path.name}] ACCEPT NEW BID - oldBid: $oldBid newBid: $newBid\n from $sender")
     }
   }
 }
