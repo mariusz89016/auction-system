@@ -1,8 +1,8 @@
-import akka.actor.{ActorRef, Actor, Cancellable, FSM}
+import akka.actor._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class Auction(private val description: String) extends Actor with FSM[State, Data] {
+class Auction(private val description: String) extends Actor with FSM[State, Data] with ActorLogging {
   private var bidTimer: Cancellable = null
   private var deleteTimer: Cancellable = null
 
@@ -24,11 +24,11 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
         self,
         BidTimerExpired
       )
-//      println("[" + self.path.name + "] got bid: " + x)
+//      log.debug("[" + self.path.name + "] got bid: " + x)
       printActualOffer(self, sender(), 0, x)
       goto(Activated) using Offer(sender(), x)
     case Event(BidTimerExpired, _) =>
-      println("[" + self.path.name + "] bid time exceeded!")
+      log.debug("[" + self.path.name + "] bid time exceeded!")
       deleteTimer = context.system.scheduler.scheduleOnce(
         5.seconds,
         self,
@@ -39,11 +39,11 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
 
   when(Ignored) {
     case Event(DeleteTimerExpired, _) =>
-      println("[" + self.path.name + "] killing...")
+      log.debug("[" + self.path.name + "] killing...")
       context.stop(self)
       stay()
     case Event(Relist, _) =>
-      println("[" + self.path.name + "] relisted")
+      log.debug("[" + self.path.name + "] relisted")
       goto(Created)
   }
 
@@ -73,21 +73,21 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
 
   when(Sold) {
     case Event(DeleteTimerExpired, _) =>
-      println("[" + self.path.name + "] killing...")
+      log.debug("[" + self.path.name + "] killing...")
       context.parent ! Stop
       context.stop(self)
       stay()
     case Event(Bid(_),_) =>
-      println("SOLD - offer didn't accept")
+      log.debug("SOLD - offer didn't accept")
       stay()
   }
 
   private def printActualOffer(me: ActorRef, sender: ActorRef, oldBid: Int, newBid: Int): Unit = {
     if(oldBid>newBid) {
-//      println("-----------------\n[%s] too LOW - oldBid: %d newBid: %d\n from %s\".format(me.path.name, oldBid, newBid, sender))
+//      log.debug("-----------------\n[%s] too LOW - oldBid: %d newBid: %d\n from %s\".format(me.path.name, oldBid, newBid, sender))
     }
     else {
-      println("-----------------\n[%s] ACCEPT NEW BID - oldBid: %d newBid: %d\n from %s".format(me.path.name, oldBid, newBid, sender))
+      log.debug("-----------------\n[%s] ACCEPT NEW BID - oldBid: %d newBid: %d\n from %s".format(me.path.name, oldBid, newBid, sender))
     }
   }
 }

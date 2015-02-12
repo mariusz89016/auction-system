@@ -1,7 +1,7 @@
-import akka.actor.{Actor, Props}
+import akka.actor.{ActorLogging, Actor, Props}
 
 
-class AuctionManager extends Actor {
+class AuctionManager extends Actor with ActorLogging {
   val NUM_OF_BUYERS = 2
   val NUM_OF_AUCTIONS = 1
 
@@ -13,9 +13,9 @@ class AuctionManager extends Actor {
       val buyerList = (0 until NUM_OF_BUYERS)
         .map(num => context.actorOf(Props(new Buyer(auctionList)), "buyer" + num))
         .toList
-      println("auction & buyers started")
+      log.debug("auction & buyers started")
     case Stop =>
-      println("CLOSING whole ActorSystem...")
+      log.debug("CLOSING whole ActorSystem...")
       context.system.shutdown()
   }
 }
