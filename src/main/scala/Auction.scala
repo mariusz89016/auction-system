@@ -1,6 +1,25 @@
-import akka.actor._
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import AuctionManager.Stop
+import Buyer.{ItemBought, Bid}
+import akka.actor._
+import Auction._
+import scala.concurrent.duration._
+
+object Auction {
+  case object BidTimerExpired
+  case object DeleteTimerExpired
+  case object Relist
+
+  sealed trait State
+  case object Created extends State
+  case object Ignored extends State
+  case object Activated extends State
+  case object Sold extends State
+
+  sealed trait Data
+  case object Uninitialized extends Data
+  case class Offer(ref: ActorRef, bid: Int) extends Data
+}
 
 class Auction(private val description: String) extends Actor with FSM[State, Data] with ActorLogging {
   private var bidTimer: Cancellable = null

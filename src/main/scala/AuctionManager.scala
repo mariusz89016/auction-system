@@ -1,5 +1,11 @@
-import akka.actor.{ActorLogging, Actor, Props}
+import AuctionManager._
+import akka.actor.{Actor, ActorLogging, Props}
 
+object AuctionManager {
+  sealed trait AuctionManagerMessage
+  case object Start extends AuctionManagerMessage
+  case object Stop extends AuctionManagerMessage
+}
 
 class AuctionManager extends Actor with ActorLogging {
   val NUM_OF_BUYERS = 2

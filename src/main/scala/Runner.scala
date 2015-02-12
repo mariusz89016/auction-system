@@ -1,3 +1,4 @@
+import AuctionManager.Start
 import akka.actor.{ActorSystem, Props}
 
 object Runner {

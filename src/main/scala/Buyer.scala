@@ -1,10 +1,14 @@
 import akka.actor.{ActorLogging, Cancellable, Actor, ActorRef}
-
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.concurrent.duration._
 import scala.util.Random
+import Buyer._
 
+
+object Buyer {
+  case class Bid(cash: Int)
+  case class ItemBought(description: String)
+}
 
 class Buyer(private val auctions: List[ActorRef]) extends Actor with ActorLogging {
   private var scheduledTask: Cancellable = null
