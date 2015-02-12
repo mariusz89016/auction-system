@@ -1,5 +1,5 @@
 import AuctionManager._
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging}
 
 object AuctionManager {
   sealed trait AuctionManagerMessage
@@ -14,11 +14,9 @@ class AuctionManager extends Actor with ActorLogging {
   override def receive: Receive = {
     case Start =>
       val auctionList = (0 until NumberOfAuctions)
-        .map(num => context.actorOf(Props(new Auction(randomSample.randomString(10))), "auction" + num))
-        .toList
-      val buyerList = (0 until NumberOfBuyers)
-        .map(num => context.actorOf(Props(new Buyer(auctionList)), "buyer" + num))
-        .toList
+        .map(num => context.actorOf(Auction.props(RandomSample.randomString(10)) , "auction" + num))
+      (0 until NumberOfBuyers)
+        .map(num => context.actorOf(Buyer.props(auctionList), "buyer" + num))
       log.debug("auction & buyers started")
     case Stop =>
       log.debug("CLOSING whole ActorSystem...")
@@ -27,6 +25,6 @@ class AuctionManager extends Actor with ActorLogging {
 }
 
 //https://gist.github.com/mahata/4145905
-object randomSample {
+object RandomSample {
   def randomString(length: Int) = Stream.continually(util.Random.nextPrintableChar()) take length mkString
 }

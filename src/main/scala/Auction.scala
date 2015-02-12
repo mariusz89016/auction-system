@@ -19,6 +19,8 @@ object Auction {
   sealed trait Data
   case object Uninitialized extends Data
   case class Offer(ref: ActorRef, bid: Int) extends Data
+
+  def props(description: String): Props = Props(classOf[Auction], description)
 }
 
 class Auction(private val description: String) extends Actor with FSM[State, Data] with ActorLogging {
