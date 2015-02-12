@@ -4,12 +4,13 @@ import akka.actor.{Actor, ActorLogging}
 object AuctionManager {
   sealed trait AuctionManagerMessage
   case object Start extends AuctionManagerMessage
-  case object Stop extends AuctionManagerMessage
+  case object AuctionEnd extends AuctionManagerMessage
 }
 
 class AuctionManager extends Actor with ActorLogging {
   val NumberOfBuyers = 2
   val NumberOfAuctions = 1
+  var auctionsEnded = 0
 
   override def receive: Receive = {
     case Start =>
@@ -18,9 +19,12 @@ class AuctionManager extends Actor with ActorLogging {
       (0 until NumberOfBuyers)
         .map(num => context.actorOf(Buyer.props(auctionList), "buyer" + num))
       log.debug("auction & buyers started")
-    case Stop =>
-      log.debug("CLOSING whole ActorSystem...")
-      context.system.shutdown()
+    case AuctionEnd =>
+      auctionsEnded += 1
+      if(auctionsEnded==NumberOfAuctions) {
+        log.debug("CLOSING whole ActorSystem...")
+        context.system.shutdown()
+      }
   }
 }
 

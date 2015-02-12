@@ -1,6 +1,6 @@
 import Auction._
-import AuctionManager.Stop
 import Buyer.{Bid, ItemBought}
+import AuctionManager.AuctionEnd
 import akka.actor._
 
 import scala.concurrent.duration._
@@ -41,8 +41,7 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
   when(Ignored, deleteTimeout) {
     case Event(StateTimeout, _) =>
       log.debug(s"[${self.path.name}] killing...")
-      context.stop(self)
-      stay()
+      stop()
     case Event(Relist, _) =>
       log.debug(s"[${self.path.name}] relisted")
       goto(Created)
@@ -65,9 +64,8 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
   when(Sold) {
     case Event(StateTimeout, _) =>
       log.debug(s"[${self.path.name}] killing...")
-      context.parent ! Stop
-      context.stop(self)
-      stay()
+      context.parent ! AuctionEnd
+      stop()
     case Event(Bid(_),_) =>
       log.debug("SOLD - offer didn't accept")
       stay()
@@ -87,4 +85,5 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
       log.debug(s"-----------------\n[${me.path.name}] ACCEPT NEW BID - oldBid: $oldBid newBid: $newBid\n from $sender")
     }
   }
+  initialize()
 }
