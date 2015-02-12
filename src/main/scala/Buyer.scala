@@ -11,14 +11,10 @@ object Buyer {
 }
 
 class Buyer(private val auctions: List[ActorRef]) extends Actor with ActorLogging {
-  private var scheduledTask: Cancellable = null
-
-  override def preStart(): Unit = {
-    scheduledTask = context.system.scheduler.schedule(1.seconds, 1.seconds) {
-      val bid = Random.nextInt(300)
-      val choice = Random.nextInt(auctions.size)
-      auctions(choice) ! Bid(bid)
-    }
+  private val scheduledTask: Cancellable = context.system.scheduler.schedule(1.second, 1.seconds) {
+    val bid = Random.nextInt(300)
+    val choice = Random.nextInt(auctions.size)
+    auctions(choice) ! Bid(bid)
   }
 
   override def postStop(): Unit = {
