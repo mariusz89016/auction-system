@@ -1,5 +1,5 @@
 import AuctionManager._
-import akka.actor.{Actor, ActorLogging}
+import akka.actor.{Props, Actor, ActorLogging}
 
 object AuctionManager {
   sealed trait AuctionManagerMessage
@@ -8,23 +8,22 @@ object AuctionManager {
 }
 
 class AuctionManager extends Actor with ActorLogging {
-  val NumberOfBuyers = 2
-  val NumberOfAuctions = 1
-  var auctionsEnded = 0
+  val sellerAuctions1 = Seq("Audi A6 diesel manual", "BMW benzyna automat", "Lotus gaz manual")
+  val sellerAuctions2 = Seq("Audi A1 benzyna automat", "BMW gaz manual", "Lotus diesiel automat")
 
   override def receive: Receive = {
     case Start =>
-      val auctionList = (0 until NumberOfAuctions)
-        .map(num => context.actorOf(Auction.props(RandomSample.randomString(10)) , "auction" + num))
-      (0 until NumberOfBuyers)
-        .map(num => context.actorOf(Buyer.props(auctionList), "buyer" + num))
-      log.debug("auction & buyers started")
-    case AuctionEnd =>
-      auctionsEnded += 1
-      if(auctionsEnded==NumberOfAuctions) {
-        log.debug("CLOSING whole ActorSystem...")
-        context.system.shutdown()
-      }
+      val auctionSearchRef = context.actorOf(Props[AuctionSearch], "auctionSearch")
+
+      context.actorOf(Seller.props(sellerAuctions1), "seller1")
+      context.actorOf(Seller.props(sellerAuctions2), "seller2")
+
+      context.actorOf(Buyer.props("diesel"), "buyer_diesel")
+      context.actorOf(Buyer.props("manual"), "buyer_manual")
+      context.actorOf(Buyer.props("Audi"), "buyer_audi")
+      context.actorOf(Buyer.props("BMW"), "buyer_bmw")
+
+      log.debug("auctionSearch, sellers & buyers started")
   }
 }
 

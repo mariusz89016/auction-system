@@ -1,6 +1,7 @@
 import Auction._
 import Buyer.{Bid, ItemBought}
 import AuctionManager.AuctionEnd
+import AuctionSearch.Register
 import akka.actor._
 
 import scala.concurrent.duration._
@@ -27,6 +28,7 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
   private val bidTimeout: FiniteDuration = 3.seconds
   private val deleteTimeout: FiniteDuration = 3.seconds
 
+  context.actorSelection("/user/auctionManager/auctionSearch") ! Register(self, description)
   startWith(Created, Uninitialized)
 
   when(Created, bidTimeout) {
