@@ -37,6 +37,7 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
       goto(Ignored)
     case Event(Bid(x: Int), _) =>
       printActualOffer(self, sender(), 0, x)
+      setTimer("bidTimeout", StateTimeout, bidTimeout, repeat = false)
       goto(Activated) using Offer(sender(), x)
   }
 
@@ -63,20 +64,16 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
         stay()
   }
 
-  when(Sold) {
+  when(Sold, deleteTimeout) {
     case Event(StateTimeout, _) =>
       log.debug(s"[${self.path.name}] killing...")
       context.parent ! AuctionEnd
       stop()
     case Event(Bid(_),_) =>
-      log.debug("SOLD - offer didn't accept")
+      val message = "SOLD - offer didn't accept"
+      sender() ! message
+      log.debug(message)
       stay()
-  }
-
-  onTransition {
-    case _ -> Sold =>
-      setTimer("deleteTimeout", StateTimeout, deleteTimeout, repeat = false)
-
   }
 
   private def printActualOffer(me: ActorRef, sender: ActorRef, oldBid: Int, newBid: Int): Unit = {
