@@ -1,3 +1,4 @@
+import AuctionSearch.Register
 import akka.actor.{Actor, ActorLogging, Props}
 
 object Seller {
@@ -6,7 +7,11 @@ object Seller {
 class Seller(private val auctions: Seq[String]) extends Actor with ActorLogging {
   require(auctions.size > 0)
 
-  auctions.foreach(auctionName => context.actorOf(Auction.props(auctionName)))
+  val auctionSearch = context.actorSelection("/user/auctionManager/auctionSearch")
+  auctions.foreach(auctionName => {
+    val auctionRef = context.actorOf(Auction.props(auctionName))
+    auctionSearch ! Register(auctionRef, auctionName)
+  })
 
   def receive: Receive = {
     case _ => s"I'm seller[$self}]!"
