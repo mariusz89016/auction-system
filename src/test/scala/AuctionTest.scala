@@ -1,8 +1,8 @@
 import Auction._
-import Buyer.Bid
-import akka.actor.ActorSystem
-import akka.testkit.{ImplicitSender, TestFSMRef, TestKit}
-import org.scalatest.{Tag, BeforeAndAfter, WordSpecLike}
+import Buyer.{ItemBought, Bid}
+import akka.actor.{Terminated, ActorSystem}
+import akka.testkit.{TestProbe, ImplicitSender, TestFSMRef, TestKit}
+import org.scalatest.{BeforeAndAfter, Tag, WordSpecLike}
 
 import scala.concurrent.duration._
 
@@ -10,9 +10,10 @@ object AwaitCondTest extends Tag("AwaitCondTest")
 
 class AuctionTest extends TestKit(ActorSystem("AuctionTest")) with WordSpecLike with BeforeAndAfter with ImplicitSender {
   var fsm: TestFSMRef[State, Data, Auction] = null
+  val description = "Audi A6 diesel manual"
 
   before {
-    fsm = TestFSMRef(new Auction("Audi A6 diesel manual"))
+    fsm = TestFSMRef(new Auction(description))
   }
 
   after {
@@ -30,7 +31,7 @@ class AuctionTest extends TestKit(ActorSystem("AuctionTest")) with WordSpecLike 
     }
     "in Created state" should {
       "go to Ignored state after bidTimeout" taggedAs AwaitCondTest in {
-        awaitCond(fsm.stateName == Ignored, 3100 milliseconds)
+        awaitCond(fsm.stateName == Ignored, 4 seconds)
       }
       "go to Activated state when receive bid" in {
         fsm ! Bid(10)
@@ -38,14 +39,17 @@ class AuctionTest extends TestKit(ActorSystem("AuctionTest")) with WordSpecLike 
       }
     }
     "in Ignored state" should {
-      //      "stop after bidTimeout" {
-      //        ???
-      //      }
+      "stop after bidTimeout" taggedAs AwaitCondTest in {
+        val probe = new TestProbe(system)
+        probe.watch(fsm)
+        probe.expectMsgPF(8 seconds) { case Terminated(fsm) => true}
+
+      }
     }
     "in Activated state" should {
       "go to Sold state after bidTimeout" taggedAs AwaitCondTest in {
         fsm ! Bid(10)
-        awaitCond(fsm.stateName == Sold, 3100 milliseconds)
+        awaitCond(fsm.stateName == Sold, 4 seconds)
       }
 
       "stay in Activated state with new Offer when receive better bid " in {
@@ -65,13 +69,15 @@ class AuctionTest extends TestKit(ActorSystem("AuctionTest")) with WordSpecLike 
     }
 
     "in Sold state" should {
-//      "stop after deleteTimeout" in {
-//        ???
-//      }
-//      "stay in Sold" in {
-//        fsm ! Bid(10)
-//        //how to receive message?
-//      }
+      "stop after deleteTimeout" in {
+        val probe = TestProbe()
+        probe.watch(fsm)
+        probe.expectMsgPF(8 seconds) { case Terminated(fsm) => true}
+      }
+      "stay in Sold" in {
+        fsm ! Bid(10)
+        expectMsg(4 seconds, ItemBought(description))
+      }
     }
 
   }
