@@ -39,7 +39,7 @@ class Buyer(private val word: String, private val maxCash: Int) extends Actor wi
       context.stop(self)
     case Outbidden(auction, bid) =>
       if (bid<maxCash) {
-        auction ! Random.nextInt(maxCash - bid)+bid
+        auction ! Bid(Random.nextInt(maxCash - bid)+bid)
       }
   }
 }
