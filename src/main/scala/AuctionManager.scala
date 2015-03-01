@@ -18,10 +18,10 @@ class AuctionManager extends Actor with ActorLogging {
       context.actorOf(Seller.props(sellerAuctions1), "seller1")
       context.actorOf(Seller.props(sellerAuctions2), "seller2")
 
-      context.actorOf(Buyer.props("diesel"), "buyer_diesel")
-      context.actorOf(Buyer.props("manual"), "buyer_manual")
-      context.actorOf(Buyer.props("Audi"), "buyer_audi")
-      context.actorOf(Buyer.props("BMW"), "buyer_bmw")
+      context.actorOf(Buyer.props("diesel", 100), "buyer_diesel")
+      context.actorOf(Buyer.props("manual", 200), "buyer_manual")
+      context.actorOf(Buyer.props("Audi", 300), "buyer_audi")
+      context.actorOf(Buyer.props("BMW", 200), "buyer_bmw")
 
       log.debug("auctionSearch, sellers & buyers started")
   }

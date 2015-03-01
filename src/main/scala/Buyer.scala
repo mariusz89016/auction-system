@@ -13,11 +13,12 @@ object Buyer {
   case class Bid(cash: Int)
   case class ItemBought(description: String)
   case object SendBid
+  case class Outbidden(auction: ActorRef, actualBid: Int)
 
-  def props(word: String): Props = Props(classOf[Buyer], word)
+  def props(word: String, maxCash: Int): Props = Props(classOf[Buyer], word, maxCash)
 }
 
-class Buyer(private val word: String) extends Actor with ActorLogging {
+class Buyer(private val word: String, private val maxCash: Int) extends Actor with ActorLogging {
   context.actorSelection("/user/auctionManager/auctionSearch") ! SearchAuction(word)
   private var auctions: mutable.Map[ActorRef, String] = null
 
@@ -31,11 +32,15 @@ class Buyer(private val word: String) extends Actor with ActorLogging {
 
   def bidding: Receive = {
     case SendBid =>
-      val bid = Random.nextInt(300)
+      val bid = Random.nextInt(maxCash)
       Random.shuffle(auctions.keys.toList).head ! Bid(bid)
     case ItemBought(description) =>
       log.debug(s"[${self.path.name}] I bought: $description")
       context.stop(self)
+    case Outbidden(auction, bid) =>
+      if (bid<maxCash) {
+        auction ! Random.nextInt(maxCash - bid)+bid
+      }
   }
 }
 

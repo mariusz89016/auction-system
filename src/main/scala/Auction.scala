@@ -1,6 +1,6 @@
 import Auction._
 import AuctionManager.AuctionEnd
-import Buyer.{Bid, ItemBought}
+import Buyer.{Outbidden, Bid, ItemBought}
 import akka.actor._
 
 import scala.concurrent.duration._
@@ -55,6 +55,7 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
     case Event(Bid(newBid: Int), Offer(ref, oldBid)) =>
       printActualOffer(self, sender(), oldBid, newBid)
       if(newBid>oldBid) {
+        ref ! Outbidden(self, newBid)
         setTimer("bidTimeout", StateTimeout, bidTimeout, repeat = false)
         goto(Activated) using Offer(sender(), newBid)
       }
