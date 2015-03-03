@@ -55,7 +55,9 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
     case Event(Bid(newBid: Int), Offer(ref, oldBid)) =>
       printActualOffer(self, sender(), oldBid, newBid)
       if(newBid>oldBid) {
-        ref ! Outbidden(self, newBid)
+        if(ref != sender()) {
+          ref ! Outbidden(self, newBid)
+        }
         setTimer("bidTimeout", StateTimeout, bidTimeout, repeat = false)
         goto(Activated) using Offer(sender(), newBid)
       }

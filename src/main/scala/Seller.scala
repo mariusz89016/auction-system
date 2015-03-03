@@ -7,7 +7,7 @@ object Seller {
 class Seller(private val auctions: Seq[String]) extends Actor with ActorLogging {
   require(auctions.size > 0)
 
-  val auctionSearch = context.actorSelection("/user/auctionManager/auctionSearch")
+  val auctionSearch = context.actorSelection("../auctionSearch")
   auctions.foreach(auctionName => {
     val auctionRef = context.actorOf(Auction.props(auctionName))
     auctionSearch ! Register(auctionRef, auctionName)

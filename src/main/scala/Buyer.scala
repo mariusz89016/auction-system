@@ -19,7 +19,7 @@ object Buyer {
 }
 
 class Buyer(private val word: String, private val maxCash: Int) extends Actor with ActorLogging {
-  context.actorSelection("/user/auctionManager/auctionSearch") ! SearchAuction(word)
+  context.actorSelection("../auctionSearch") ! SearchAuction(word)
   private var auctions: mutable.Map[ActorRef, String] = null
 
 
