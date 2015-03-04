@@ -65,7 +65,7 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
         stay()
   }
 
-  when(Sold, deleteTimeout) {
+  when(Sold) {
     case Event(StateTimeout, _) =>
       log.debug(s"[${self.path.name}] killing...")
       context.parent ! AuctionEnd
@@ -75,6 +75,14 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
       sender() ! message
       log.debug(message)
       stay()
+  }
+
+  onTransition {
+    case _ -> Sold =>
+      if (!isTimerActive("deleteTimeout")) {
+        setTimer("deleteTimeout", StateTimeout, deleteTimeout)
+      }
+
   }
 
   private def printActualOffer(me: ActorRef, sender: ActorRef, oldBid: Int, newBid: Int): Unit = {
