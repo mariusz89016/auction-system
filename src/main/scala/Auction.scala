@@ -34,7 +34,7 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
       log.debug(s"[${self.path.name}] bid time exceeded!")
       goto(Ignored)
     case Event(Bid(x: Int), _) =>
-      printActualOffer(self, sender(), 0, x)
+      printAcceptedBid(self, sender(), 0, x)
       setTimer("bidTimeout", StateTimeout, bidTimeout, repeat = false)
       goto(Activated) using Offer(sender(), x)
   }
@@ -53,12 +53,12 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
       ref ! ItemBought(description)
       goto(Sold)
     case Event(Bid(newBid: Int), Offer(ref, oldBid)) =>
-      printActualOffer(self, sender(), oldBid, newBid)
       if(newBid>oldBid) {
+        printAcceptedBid(self, sender(), oldBid, newBid)
         if(ref != sender()) {
           ref ! Outbidden(self, newBid)
         }
-        setTimer("bidTimeout", StateTimeout, bidTimeout, repeat = false)
+        setTimer("bidTimeout", StateTimeout, bidTimeout)
         goto(Activated) using Offer(sender(), newBid)
       }
       else
@@ -71,7 +71,7 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
       context.parent ! AuctionEnd
       stop()
     case Event(Bid(_),_) =>
-      val message = "SOLD - offer didn't accept"
+      val message = s"[${self.path.name}] SOLD - offer didn't accept"
       sender() ! message
       log.debug(message)
       stay()
@@ -85,12 +85,13 @@ class Auction(private val description: String) extends Actor with FSM[State, Dat
 
   }
 
-  private def printActualOffer(me: ActorRef, sender: ActorRef, oldBid: Int, newBid: Int): Unit = {
-    if(oldBid>newBid) {
-//      log.debug("-----------------\n[${me.path.name}] too LOW - oldBid: $oldBid newBid: $newBid\n from $sender")
-    }
-    else {
-      log.debug(s"-----------------\n[${me.path.name}] ACCEPT NEW BID - oldBid: $oldBid newBid: $newBid\n from $sender")
+  private def printAcceptedBid(me: ActorRef, sender: ActorRef, oldBid: Int, newBid: Int): Unit = {
+    if(oldBid<newBid) {
+      log.debug(s"""
+      ┌----------------
+      |[${me.path.name}] ACCEPTED NEW BID - oldBid: $oldBid newBid: $newBid")
+      |from $sender
+      └----------------""")
     }
   }
   initialize()
