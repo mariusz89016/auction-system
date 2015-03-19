@@ -23,7 +23,7 @@ object Auction {
   def props(description: String): Props = Props(classOf[Auction], description)
 }
 
-class Auction(private val description: String) extends Actor with FSM[State, Data] with ActorLogging {
+class Auction(description: String) extends Actor with FSM[State, Data] with ActorLogging {
   private val bidTimeout: FiniteDuration = 3.seconds
   private val deleteTimeout: FiniteDuration = 3.seconds
 

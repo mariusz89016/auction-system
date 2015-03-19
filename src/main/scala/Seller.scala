@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, Props}
 object Seller {
   def props(auctions: Seq[String]) = Props(classOf[Seller], auctions)
 }
-class Seller(private val auctions: Seq[String]) extends Actor with ActorLogging {
+class Seller(auctions: Seq[String]) extends Actor with ActorLogging {
   require(auctions.size > 0)
 
   val auctionSearch = context.actorSelection("../auctionSearch")

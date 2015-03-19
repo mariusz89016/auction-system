@@ -16,7 +16,7 @@ class AuctionSystemTest extends TestKit(ActorSystem("auctionSystemTest")) with W
       Thread.sleep(800)
       system.actorOf(Buyer.props("audi", 100), "buyer_100")
       val buyer2 = system.actorOf(Buyer.props("audi", 300), "buyer_300")
-      val testProbe = new TestProbe(system)
+      val testProbe = TestProbe()
       testProbe.watch(buyer2)
 
       testProbe.expectTerminated(buyer2, 10 seconds)

@@ -2,14 +2,13 @@ import AuctionSearch.SearchAuction
 import Buyer._
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.Random
 
 
 object Buyer {
-  case class Auctions(auctions: mutable.Map[ActorRef, String])
+  case class Auctions(auctions: Map[ActorRef, String])
   case class Bid(cash: Int)
   case class ItemBought(description: String)
   case object SendBid
@@ -18,9 +17,9 @@ object Buyer {
   def props(word: String, maxCash: Int): Props = Props(classOf[Buyer], word, maxCash)
 }
 
-class Buyer(private val word: String, private val maxCash: Int) extends Actor with ActorLogging {
+class Buyer(word: String, maxCash: Int) extends Actor with ActorLogging {
   context.actorSelection("../auctionSearch") ! SearchAuction(word)
-  private var auctions: mutable.Map[ActorRef, String] = null
+  private var auctions: Map[ActorRef, String] = Map()
 
 
   def receive: Receive = {
