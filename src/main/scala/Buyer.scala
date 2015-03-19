@@ -32,7 +32,7 @@ class Buyer(private val word: String, private val maxCash: Int) extends Actor wi
 
   def bidding: Receive = {
     case SendBid =>
-      val bid = Random.nextInt(maxCash)
+      val bid = Random.nextInt(maxCash)+1
       Random.shuffle(auctions.keys.toList).head ! Bid(bid)
     case ItemBought(description) =>
       log.debug(s"[${self.path.name}] I bought: $description")

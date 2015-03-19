@@ -46,7 +46,7 @@ class AuctionManager(amountOfSellers: Int,
   def createBuyers() = {
     for(i <- 0 until amountOfBuyers) {
       val keyword = Random.shuffle(keywords).head
-      context.actorOf(Buyer.props(keyword, Random.nextInt(maxCash)), s"buyer${i}_$keyword")
+      context.actorOf(Buyer.props(keyword, Random.nextInt(maxCash)+1), s"buyer${i}_$keyword")
     }
   }
 }
