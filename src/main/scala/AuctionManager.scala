@@ -28,7 +28,8 @@ class AuctionManager(amountOfSellers: Int,
                      maxCash: Int) extends Actor with ActorLogging {
   override def receive: Receive = {
     case Start =>
-      context.actorOf(Props[AuctionSearch], "auctionSearch")
+      context.actorOf(MasterSearch.props(isReplication = true), "masterSearch")
+      Thread.sleep(800)
       createSellers()
       Thread.sleep(800)
       createBuyers()

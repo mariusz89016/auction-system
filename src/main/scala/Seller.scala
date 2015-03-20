@@ -1,4 +1,4 @@
-import AuctionSearch.Register
+import MasterSearch.Register
 import akka.actor.{Actor, ActorLogging, Props}
 
 object Seller {
@@ -7,10 +7,10 @@ object Seller {
 class Seller(auctions: Seq[String]) extends Actor with ActorLogging {
   require(auctions.size > 0)
 
-  val auctionSearch = context.actorSelection("../auctionSearch")
+  val masterSearch = context.actorSelection("../masterSearch")
   auctions.foreach(auctionName => {
     val auctionRef = context.actorOf(Auction.props(auctionName), auctionName.replaceAll(" ", "_"))
-    auctionSearch ! Register(auctionRef, auctionName)
+    masterSearch ! Register(auctionRef, auctionName)
   })
 
   def receive: Receive = {

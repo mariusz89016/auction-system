@@ -1,5 +1,5 @@
-import AuctionSearch.SearchAuction
 import Buyer._
+import MasterSearch.SearchAuction
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,18 +18,15 @@ object Buyer {
 }
 
 class Buyer(word: String, maxCash: Int) extends Actor with ActorLogging {
-  context.actorSelection("../auctionSearch") ! SearchAuction(word)
-  private var auctions: Map[ActorRef, String] = Map()
+  context.actorSelection("../masterSearch") ! SearchAuction(word)
+  private val auctions: collection.mutable.Map[ActorRef, String] = collection.mutable.Map()
 
+  context.system.scheduler.schedule(1.seconds, 1.seconds, self, SendBid)
 
   def receive: Receive = {
     case Auctions(retrievedAuctions) =>
-      auctions = retrievedAuctions
-      context.system.scheduler.schedule(1.seconds, 1.seconds, self, SendBid)
-      context become bidding
-  }
-
-  def bidding: Receive = {
+      auctions ++= retrievedAuctions
+      println(word + "\n"+retrievedAuctions)
     case SendBid =>
       val bid = Random.nextInt(maxCash)+1
       Random.shuffle(auctions.keys.toList).head ! Bid(bid)
