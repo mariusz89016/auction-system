@@ -30,21 +30,23 @@ class AuctionManager(amountOfSellers: Int,
     case Start =>
       context.actorOf(MasterSearch.props(isReplication = true), "masterSearch")
       Thread.sleep(800)
-      createSellers()
+      val keywords = createSellers()
+      log.debug("keywords: " + keywords)
       Thread.sleep(800)
-      createBuyers()
+      createBuyers(keywords)
   }
 
   def createSellers() = {
-    val numberOfAuctionsPerSeller = math.ceil(auctionNames.length/amountOfSellers.toFloat).toInt
-    val sellersAuctions = auctionNames.grouped(numberOfAuctionsPerSeller).toList
-
-    sellersAuctions.zipWithIndex.foreach { case (seqForSeller, i) =>
-      context.actorOf(Seller.props(seqForSeller), s"seller$i")
+    val keywords: collection.mutable.Set[String] = collection.mutable.Set()
+    for (i <- 1 to amountOfSellers) {
+      val chosenAuctionNames = auctionNames.filter(_ => Random.nextInt(2)%2==0)
+      context.actorOf(Seller.props(chosenAuctionNames), s"seller$i")
+      keywords ++= chosenAuctionNames.flatMap(auctionName => auctionName.split(" "))
     }
+    keywords.toSeq
   }
 
-  def createBuyers() = {
+  def createBuyers(keywords: Seq[String]) = {
     for(i <- 0 until amountOfBuyers) {
       val keyword = Random.shuffle(keywords).head
       context.actorOf(Buyer.props(keyword, Random.nextInt(maxCash)+1), s"buyer${i}_$keyword")
